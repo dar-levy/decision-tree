@@ -99,7 +99,10 @@ def calc_entropy(data):
     ###########################################################################
     # TODO: Implement the function.                                           #
     ###########################################################################
-    pass
+    class_column = data[:, -1]
+    classes, count = np.unique(class_column, return_counts=True)
+    weight = count / len(data)
+    entropy = (-1) * np.sum(weight * np.log2(weight))
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
