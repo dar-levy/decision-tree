@@ -382,7 +382,13 @@ class DecisionTree:
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        for instance in dataset:
+            prediction = self.predict(instance)
+            actual_value = instance[-1]
+            if prediction == actual_value:
+                accuracy += 1
+
+        accuracy = (accuracy / (len(dataset))) * 100
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
