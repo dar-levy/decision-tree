@@ -351,7 +351,19 @@ class DecisionTree:
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        node = self.root
+        while not node.terminal:
+            feature = node.feature
+            value = instance[feature]
+            # Find the child node that corresponds to the feature value of the instance
+            is_child_found = False
+            for i, val in enumerate(node.children_values):
+                if val == value:
+                    node = node.children[i]
+                    is_child_found = True
+                    break
+            if not is_child_found:
+                break
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
