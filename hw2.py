@@ -235,12 +235,68 @@ class DecisionNode:
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        if self.terminal or self.depth >= self.max_depth:
+            return
+
+        best_goodness = -float('inf')
+        best_feature = None
+        best_groups = None
+
+        # Evaluate each feature for splitting
+        n_features = self.data.shape[1] - 1  # assuming the last column is the target label
+        for feature in range(n_features):
+            goodness, groups = self.goodness_of_split(feature)
+            if goodness > best_goodness:
+                best_goodness = goodness
+                best_feature = feature
+                best_groups = groups
+
+        # If no good split found or if the chi value suggests stopping
+        if best_feature is None or best_goodness <= 0:
+            self.terminal = True
+            return
+
+        # Apply chi-square pruning if necessary
+        if self.chi > 0:
+            chi_stat = self._calculate_chi_square(best_groups)
+            if chi_stat < chi_table.get(len(best_groups) - 1, {}).get(self.chi, float('inf')):
+                self.terminal = True
+                return
+
+        # Create child nodes
+        self.feature = best_feature
+        for value, subset in best_groups.items():
+            if len(subset) > 0:
+                child_node = DecisionNode(subset, self.impurity_func, feature=best_feature, depth=self.depth + 1,
+                                          chi=self.chi, max_depth=self.max_depth)
+                self.add_child(child_node, value)
+
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
 
-                    
+    def _calculate_chi_square(self, groups):
+        # Get the overall frequencies of the classes in the original data
+        total_samples = len(self.data)
+        class_counts = np.unique(self.data[:, -1], return_counts=True)[1]
+        expected_ratios = class_counts / total_samples
+
+        chi_stat = 0
+        for group in groups.values():
+            # Calculate expected counts for each class in this group
+            group_size = len(group)
+            expected_counts = expected_ratios * group_size
+            observed_counts = np.array([len(group[group[:, -1] == class_val]) for class_val in np.unique(self.data[:, -1])])
+
+            # Calculate the chi-square statistic for this group
+            with np.errstate(divide='ignore', invalid='ignore'):
+                chi_contributions = (observed_counts - expected_counts) ** 2 / expected_counts
+                chi_contributions = np.nan_to_num(chi_contributions)  # handle zero division
+            chi_stat += np.sum(chi_contributions)
+
+        return chi_stat
+
+
 class DecisionTree:
     def __init__(self, data, impurity_func, feature=-1, chi=1, max_depth=1000, gain_ratio=False):
         self.data = data # the relevant data for the tree
