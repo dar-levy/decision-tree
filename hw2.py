@@ -1,3 +1,5 @@
+import queue
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -318,7 +320,19 @@ class DecisionTree:
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        self.root = DecisionNode(data=self.data, impurity_func=self.impurity_func, depth=0, chi=self.chi, max_depth=self.max_depth, gain_ratio=self.gain_ratio)
+        q = queue.Queue
+        q.put(self.root)
+        while not q.empty():
+            current_node = q.get()
+            if len(np.unique(current_node.data)) == 1:
+                current_node.terminal = True
+                continue
+
+            current_node.split()
+            for child in current_node.children:
+                q.put(child)
+
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
