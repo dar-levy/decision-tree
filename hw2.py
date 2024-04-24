@@ -258,38 +258,23 @@ class DecisionNode:
 
         self.feature = best_feature
 
-        if len(best_groups) > 1 and check_chi(self, best_groups, self.chi):
+        if len(best_groups) > 1 and self._check_chi(self, best_groups):
             for key, group in best_groups.items():
                 child = DecisionNode(group, self.impurity_func, depth=self.depth+1, chi=self.chi, max_depth=self.max_depth, gain_ratio=self.gain_ratio)
                 self.add_child(child, key)
-            return
 
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
 
+    def _check_chi(self, node, subdata):
+        if self.chi == 1:
+            return True
 
-def check_chi(node, subdata, chi):
-    """
-    This function checks if all the conditions of doing chi pruning are exists.
-
-    Input:
-    - node: the tree itself
-    - subdata: the data we have after we calculate the goodness of split by the best feature to split by.
-    - chi: the chi value that we got in creating the tree.
-
-    Returns:
-        True or False if the condition that chi value that we calculate is equal or bigger than the value from the chi table
-            """
-    # Check if the chi value is 1 then no need to preform chi pruning.
-    if chi == 1:
-        return True
-
-    # calculate the chi value by the formula and check this value with the value from chi table.
-    chi_val = chi_square_compute(node.data, subdata)
-    deg_of_freedom = len(subdata) - 1
-    chi_val_from_table = chi_table[deg_of_freedom][chi]
-    return chi_val >= chi_val_from_table
+        chi_val = chi_square_compute(node.data, subdata)
+        deg_of_freedom = len(subdata) - 1
+        chi_val_from_table = chi_table[deg_of_freedom][self.chi]
+        return chi_val >= chi_val_from_table
 
 def chi_square_compute(data, subdata):
     """
