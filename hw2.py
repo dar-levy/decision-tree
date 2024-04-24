@@ -114,7 +114,7 @@ class DecisionNode:
 
     
     def __init__(self, data, impurity_func, feature=-1,depth=0, chi=1, max_depth=1000, gain_ratio=False):
-        
+
         self.data = data # the relevant data for the node
         self.feature = feature # column index of criteria being tested
         self.pred = self.calc_node_pred() # the prediction of the node
@@ -243,9 +243,7 @@ class DecisionNode:
         best_goodness = -float('inf')
         best_feature = None
         best_groups = None
-
-        # Evaluate each feature for splitting
-        n_features = self.data.shape[1] - 1  # assuming the last column is the target label
+        n_features = self.data.shape[1] - 1
         for feature in range(n_features):
             goodness, groups = self.goodness_of_split(feature)
             if goodness > best_goodness:
@@ -258,45 +256,85 @@ class DecisionNode:
             self.terminal = True
             return
 
-        # Apply chi-square pruning if necessary
-        if self.chi > 0:
-            chi_stat = self._calculate_chi_square(best_groups)
-            if chi_stat < chi_table.get(len(best_groups) - 1, {}).get(self.chi, float('inf')):
-                self.terminal = True
-                return
-
-        # Create child nodes
         self.feature = best_feature
-        for value, subset in best_groups.items():
-            if len(subset) > 0:
-                child_node = DecisionNode(subset, self.impurity_func, feature=best_feature, depth=self.depth + 1,
-                                          chi=self.chi, max_depth=self.max_depth)
-                self.add_child(child_node, value)
 
+        if len(best_groups) > 1 and check_chi(self, best_groups, self.chi):
+            for key, group in best_groups.items():
+                child = DecisionNode(group, self.impurity_func, depth=self.depth+1, chi=self.chi, max_depth=self.max_depth, gain_ratio=self.gain_ratio)
+                self.add_child(child, key)
+            return
+
+        else:
+            self.terminal = True
+            return
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
 
-    def _calculate_chi_square(self, groups):
-        # Get the overall frequencies of the classes in the original data
-        total_samples = len(self.data)
-        class_counts = np.unique(self.data[:, -1], return_counts=True)[1]
-        expected_ratios = class_counts / total_samples
 
-        chi_stat = 0
-        for group in groups.values():
-            # Calculate expected counts for each class in this group
-            group_size = len(group)
-            expected_counts = expected_ratios * group_size
-            observed_counts = np.array([len(group[group[:, -1] == class_val]) for class_val in np.unique(self.data[:, -1])])
+def check_chi(node, subdata, chi):
+    """
+    This function checks if all the conditions of doing chi pruning are exists.
 
-            # Calculate the chi-square statistic for this group
-            with np.errstate(divide='ignore', invalid='ignore'):
-                chi_contributions = (observed_counts - expected_counts) ** 2 / expected_counts
-                chi_contributions = np.nan_to_num(chi_contributions)  # handle zero division
-            chi_stat += np.sum(chi_contributions)
+    Input:
+    - node: the tree itself
+    - subdata: the data we have after we calculate the goodness of split by the best feature to split by.
+    - chi: the chi value that we got in creating the tree.
 
-        return chi_stat
+    Returns:
+        True or False if the condition that chi value that we calculate is equal or bigger than the value from the chi table
+            """
+    # Check if the chi value is 1 then no need to preform chi pruning.
+    if chi == 1:
+        return True
+
+    # calculate the chi value by the formula and check this value with the value from chi table.
+    chi_val = chi_square_compute(node.data, subdata)
+    deg_of_freedom = len(subdata) - 1
+    chi_val_from_table = chi_table[deg_of_freedom][chi]
+    return chi_val >= chi_val_from_table
+
+def chi_square_compute(data, subdata):
+    """
+    calculates the chi square according to the formula.
+
+    Input:
+    - data: any dataset where the last column holds the labels.
+    - feature: The index of the feature that we will calculate the chi square according to it.
+
+    Returns:
+    - chi_square: the chi square of the dataset according to the feature.
+    """
+    # Creating variables that we will use in the formula.
+    chi_square = 0
+    size = len(data[:, -1])
+    final_label_count = dict_label_number(data[:, -1])
+    for feature_val, sub in subdata.items():
+        sub_size = len(sub)
+        sub_label_count = dict_label_number(sub[:, -1])
+        for label, count in final_label_count.items():
+
+            # Calculate the parameters in the formula.
+            expected = sub_size * (count / size)
+            observed = sub_label_count.get(label)
+
+            # Calculate the chi square according to the formula.
+            chi_square = chi_square + (((observed-expected)**2) / expected)
+    return chi_square
+
+def dict_label_number(labels):
+    """
+    The function creates a dictionary of labels of a column and there amount in the column.
+
+    Input:
+    -labels : An array of the labels.
+
+    Returns:
+    - dictionary: A dictionary that the key is the label and the value is the amount of the label
+    """
+
+    # For each label count how much this label appears in the array of the label.
+    return {label: np.sum(labels == label) for label in np.unique(labels)}
 
 
 class DecisionTree:
