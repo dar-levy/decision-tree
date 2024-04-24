@@ -173,11 +173,23 @@ class DecisionNode:
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        current_node_impurity = self.impurity_func(self.data)
+        total_samples = len(self.data)
+        weighted_impurity_sum = self._calculate_weighted_sum(n_total_sample)
+        self.feature_importance = (total_samples / n_total_sample) * (current_node_impurity - weighted_impurity_sum)
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
-    
+
+    def _calculate_weighted_sum(self, n_total_sample):
+        weighted_impurity_sum = 0
+        for child in self.children:
+            child_impurity = self.impurity_func(child.data)
+            child_samples = len(child.data)
+            weighted_impurity_sum += (child_samples / n_total_sample) * child_impurity
+
+        return weighted_impurity_sum
+
     def goodness_of_split(self, feature):
         """
         Calculate the goodness of split of a dataset given a feature and impurity function.
