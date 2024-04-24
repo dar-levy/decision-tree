@@ -174,9 +174,9 @@ class DecisionNode:
         # TODO: Implement the function.                                           #
         ###########################################################################
         current_node_impurity = self.impurity_func(self.data)
-        total_samples = len(self.data)
+        total_instances = len(self.data)
         weighted_impurity_sum = self._calculate_weighted_sum(n_total_sample)
-        self.feature_importance = (total_samples / n_total_sample) * (current_node_impurity - weighted_impurity_sum)
+        self.feature_importance = (total_instances / n_total_sample) * (current_node_impurity - weighted_impurity_sum)
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
