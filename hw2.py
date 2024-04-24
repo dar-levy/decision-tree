@@ -264,9 +264,6 @@ class DecisionNode:
                 self.add_child(child, key)
             return
 
-        else:
-            self.terminal = True
-            return
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
