@@ -137,7 +137,9 @@ class DecisionNode:
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        classes, count = np.unique(self.data[:, -1], return_counts=True)
+        classes_count = dict(zip(classes, count))
+        pred = max(classes_count, key=classes_count.get)
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
