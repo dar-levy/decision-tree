@@ -207,12 +207,23 @@ class DecisionNode:
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        total_instances = len(self.data)
+        parent_impurity = self.impurity_func(self.data)
+        children_weighted_impurity = 0
+        unique_values = np.unique(self.data[:, feature])
+        for value in unique_values:
+            child_instances = self.data[self.data[:, feature] == value]
+            groups[value] = child_instances
+            subset_impurity = self.impurity_func(child_instances)
+            proportion = len(child_instances) / total_instances
+            children_weighted_impurity += proportion * subset_impurity
+
+        goodness = parent_impurity - children_weighted_impurity
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
         return goodness, groups
-    
+
     def split(self):
         """
         Splits the current node according to the self.impurity_func. This function finds
