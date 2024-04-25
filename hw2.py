@@ -298,7 +298,7 @@ def chi_square_compute(data, subdata):
 
             # Calculate the parameters in the formula.
             expected = sub_size * (count / size)
-            observed = sub_label_count.get(label)
+            observed = sub_label_count.get(label, 0)  # Returns 0 if label is not found
 
             # Calculate the chi square according to the formula.
             chi_square = chi_square + (((observed-expected)**2) / expected)
@@ -415,7 +415,7 @@ class DecisionTree:
         return accuracy
         
     def depth(self):
-        return self.root.depth()
+        return self.root.depth
 
 def depth_pruning(X_train, X_validation):
     """
@@ -449,7 +449,7 @@ def depth_pruning(X_train, X_validation):
     return training, validation
 
 
-def chi_pruning(X_train, X_test):
+def chi_pruning(X_train, X_validation):
 
     """
     Calculate the training and validation accuracies for different chi values
@@ -466,18 +466,27 @@ def chi_pruning(X_train, X_test):
     - depth: the tree depth for each chi value
     """
     chi_training_acc = []
-    chi_validation_acc  = []
+    chi_validation_acc = []
     depth = []
 
     ###########################################################################
     # TODO: Implement the function.                                           #
     ###########################################################################
-    pass
+    p_values = [1, 0.5, 0.25, 0.1, 0.05, 0.0001]
+    for p_value in p_values:
+        tree = DecisionTree(data=X_train, impurity_func=calc_entropy, chi=p_value, gain_ratio=True)
+        tree.build_tree()
+        train_accuracy = tree.calc_accuracy(X_train)
+        validation_accuracy = tree.calc_accuracy(X_validation)
+        chi_training_acc.append(train_accuracy)
+        chi_validation_acc.append(validation_accuracy)
+        tree_depth = tree.depth()
+        depth.append(tree_depth)
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
         
-    return chi_training_acc, chi_testing_acc, depth
+    return chi_training_acc, chi_validation_acc, depth
 
 
 def count_nodes(node):
