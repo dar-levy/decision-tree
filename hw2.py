@@ -288,23 +288,26 @@ class DecisionNode:
         return chi_val >= chi_val_from_table
 
     def _compute_chi_square(self, data, subdata):
-        chi_square = 0
         total_size = len(data)
-        final_label_count = self._create_label_count_dict(data[:, -1])
-        for sub in subdata.values():
-            sub_size = len(sub)
-            sub_label_count = self._create_label_count_dict(sub[:, -1])
-            for label, global_count in final_label_count.items():
-                expected = sub_size * (global_count / total_size)
-                observed = sub_label_count.get(label)
-                if observed:
+        label_counts = np.unique(data[:, -1], return_counts=True)
+        chi_square = 0
+
+        for subset in subdata.values():
+            subset_size = len(subset)
+            if subset_size == 0:
+                continue
+
+            subset_label_counts = np.unique(subset[:, -1], return_counts=True)
+            subset_label_dict = dict(zip(subset_label_counts[0], subset_label_counts[1]))
+
+            for label, global_count in zip(label_counts[0], label_counts[1]):
+                expected = subset_size * (global_count / total_size)
+                observed = subset_label_dict.get(label, 0)  # Default to 0 if the label is not found in the subset
+
+                if expected > 0:
                     chi_square += ((observed - expected) ** 2) / expected
 
         return chi_square
-
-    def _create_label_count_dict(self, labels):
-        unique, counts = np.unique(labels, return_counts=True)
-        return dict(zip(unique, counts))
 
 
 class DecisionTree:
