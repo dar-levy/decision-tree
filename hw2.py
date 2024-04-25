@@ -209,43 +209,31 @@ class DecisionNode:
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        # If the gain_ratio is True then we need to compute information gain and split_in_information by entropy.
-        if self.gain_ratio == True:
-            self.impurity_func = calc_entropy
-
-        # Creating the variables that we need for the calculating
-        split_in_information = 0
+        groups = {val: self.data[self.data[:, feature] == val] for val in np.unique(self.data[:, feature])}
+        total_samples = len(self.data)
         impurity_data = self.impurity_func(self.data)
-        impurity_attribute = 0
-        param = np.unique(self.data.T[feature])
+        weighted_impurity = 0
+        split_information = 0
 
-        # Going over the types of parameters that are in the feature and handle them according to the calculation.
-        for val in param:
-            groups[val] = self.data[self.data[:, feature] == val]
-            size_attribute = len(groups[val]) / len(self.data)
-            split_in_information += size_attribute * np.log2(size_attribute)
-            impurity_attribute += size_attribute * self.impurity_func(groups[val])
+        # Compute weighted impurity and split information
+        for subset in groups.values():
+            attribute_size = len(subset) / total_samples
+            if attribute_size > 0:  # Prevent log2(0)
+                split_information -= attribute_size * np.log2(attribute_size)
+            weighted_impurity += attribute_size * self.impurity_func(subset)
 
-        # If gain_ration is False we compute the goodness of split according to the formula.
-        if not self.gain_ratio:
-            goodness = impurity_data - impurity_attribute
-
-        # If gain_ration is True we compute the goodnes by division between information gain and split in information.
-        else:
-            information_gain = impurity_data - impurity_attribute
-
-            # To avoid division by 0.
-            if split_in_information == 0:
-                return 0, groups
-
-            # Adjust the variable according to the formula.
-            split_in_information = split_in_information * (-1)
-            goodness = information_gain / split_in_information
-
+        information_gain = impurity_data - weighted_impurity
+        goodness = self._calc_goodness_by_gain_ratio(information_gain, split_information)
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
         return goodness, groups
+
+    def _calc_goodness_by_gain_ratio(self, information_gain, split_information):
+        if self.gain_ratio and split_information != 0:
+            return information_gain / split_information
+        else:
+            return information_gain
 
     def split(self):
         """
