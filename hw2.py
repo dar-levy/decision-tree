@@ -248,6 +248,7 @@ class DecisionNode:
         # TODO: Implement the function.                                           #
         ###########################################################################
         if self.terminal or self.depth >= self.max_depth:
+            self.terminal = True
             return
 
         best_goodness = -float('inf')
@@ -268,7 +269,7 @@ class DecisionNode:
 
         self.feature = best_feature
 
-        if len(best_groups) > 1 and self._check_chi(self, best_groups):
+        if len(best_groups) > 1 and self._check_chi(best_groups):
             for key, group in best_groups.items():
                 child = DecisionNode(group, self.impurity_func, depth=self.depth+1, chi=self.chi, max_depth=self.max_depth, gain_ratio=self.gain_ratio)
                 self.add_child(child, key)
@@ -277,56 +278,33 @@ class DecisionNode:
         #                             END OF YOUR CODE                            #
         ###########################################################################
 
-    def _check_chi(self, node, subdata):
+    def _check_chi(self, subdata):
         if self.chi == 1:
             return True
 
-        chi_val = chi_square_compute(node.data, subdata)
-        deg_of_freedom = len(subdata) - 1
-        chi_val_from_table = chi_table[deg_of_freedom][self.chi]
+        chi_val = self._compute_chi_square(self.data, subdata)
+        degree_of_freedom = len(subdata) - 1
+        chi_val_from_table = chi_table[degree_of_freedom][self.chi]
         return chi_val >= chi_val_from_table
 
-def chi_square_compute(data, subdata):
-    """
-    calculates the chi square according to the formula.
+    def _compute_chi_square(self, data, subdata):
+        chi_square = 0
+        total_size = len(data)
+        final_label_count = self._create_label_count_dict(data[:, -1])
+        for sub in subdata.values():
+            sub_size = len(sub)
+            sub_label_count = self._create_label_count_dict(sub[:, -1])
+            for label, global_count in final_label_count.items():
+                expected = sub_size * (global_count / total_size)
+                observed = sub_label_count.get(label)
+                if observed:
+                    chi_square += ((observed - expected) ** 2) / expected
 
-    Input:
-    - data: any dataset where the last column holds the labels.
-    - feature: The index of the feature that we will calculate the chi square according to it.
+        return chi_square
 
-    Returns:
-    - chi_square: the chi square of the dataset according to the feature.
-    """
-    # Creating variables that we will use in the formula.
-    chi_square = 0
-    size = len(data[:, -1])
-    final_label_count = dict_label_number(data[:, -1])
-    for feature_val, sub in subdata.items():
-        sub_size = len(sub)
-        sub_label_count = dict_label_number(sub[:, -1])
-        for label, count in final_label_count.items():
-
-            # Calculate the parameters in the formula.
-            expected = sub_size * (count / size)
-            observed = sub_label_count.get(label, 0)  # Returns 0 if label is not found
-
-            # Calculate the chi square according to the formula.
-            chi_square = chi_square + (((observed-expected)**2) / expected)
-    return chi_square
-
-def dict_label_number(labels):
-    """
-    The function creates a dictionary of labels of a column and there amount in the column.
-
-    Input:
-    -labels : An array of the labels.
-
-    Returns:
-    - dictionary: A dictionary that the key is the label and the value is the amount of the label
-    """
-
-    # For each label count how much this label appears in the array of the label.
-    return {label: np.sum(labels == label) for label in np.unique(labels)}
+    def _create_label_count_dict(self, labels):
+        unique, counts = np.unique(labels, return_counts=True)
+        return dict(zip(unique, counts))
 
 
 class DecisionTree:
