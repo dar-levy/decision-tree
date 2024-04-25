@@ -431,13 +431,18 @@ def depth_pruning(X_train, X_validation):
     Output: the training and validation accuracies per max depth
     """
     training = []
-    validation  = []
+    validation = []
     root = None
     for max_depth in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]:
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        pass
+        tree = DecisionTree(data=X_train, impurity_func=calc_entropy, max_depth=max_depth, gain_ratio=True)
+        tree.build_tree()
+        train_accuracy = tree.calc_accuracy(X_train)
+        validation_accuracy = tree.calc_accuracy(X_validation)
+        training.append(train_accuracy)
+        validation.append(validation_accuracy)
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
