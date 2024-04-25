@@ -491,7 +491,7 @@ def chi_pruning(X_train, X_validation):
         validation_accuracy = tree.calc_accuracy(X_validation)
         chi_training_acc.append(train_accuracy)
         chi_validation_acc.append(validation_accuracy)
-        tree_depth = calc_depth(tree.root)
+        tree_depth = get_depth(tree.root)
         depth.append(tree_depth)
     ###########################################################################
     #                             END OF YOUR CODE                            #
@@ -500,15 +500,15 @@ def chi_pruning(X_train, X_validation):
     return chi_training_acc, chi_validation_acc, depth
 
 
-def calc_depth(node):
+def get_depth(node):
     if node.terminal:
         return node.depth
 
     depths = [0]
     for child in node.children:
-        child_depth = calc_depth(child)
+        child_depth = get_depth(child)
         depths.append(child_depth)
-        
+
     return max(depths)
 
 
