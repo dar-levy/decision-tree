@@ -340,7 +340,7 @@ class DecisionTree:
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        self.root = DecisionNode(data=self.data, impurity_func=self.impurity_func, depth=0, chi=self.chi, max_depth=self.max_depth, gain_ratio=self.gain_ratio)
+        self.root = DecisionNode(data=self.data, impurity_func=self.impurity_func, chi=self.chi, max_depth=self.max_depth, gain_ratio=self.gain_ratio)
         q = queue.Queue()
         q.put(self.root)
         while not q.empty():
