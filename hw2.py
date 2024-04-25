@@ -427,6 +427,7 @@ class DecisionTree:
     def depth(self):
         return self.root.depth
 
+
 def depth_pruning(X_train, X_validation):
     """
     Calculate the training and validation accuracies for different depths
@@ -498,6 +499,7 @@ def chi_pruning(X_train, X_validation):
         
     return chi_training_acc, chi_validation_acc, depth
 
+
 def calc_depth(node):
     """
     Calculate the depth of the tree by adding each depth of a node to a list and returns the maximum value
@@ -521,6 +523,7 @@ def calc_depth(node):
         child_depth = calc_depth(child)
         depths.append(child_depth)
     return max(depths)
+
 
 def count_nodes(node):
     """
