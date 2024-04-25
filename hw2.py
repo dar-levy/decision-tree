@@ -209,13 +209,11 @@ class DecisionNode:
         ###########################################################################
         # TODO: Implement the function.                                           #
         ###########################################################################
-        groups = {val: self.data[self.data[:, feature] == val] for val in np.unique(self.data[:, feature])}
+        groups = self._group_by_unique_values(feature)
         total_samples = len(self.data)
         impurity_data = self.impurity_func(self.data)
         weighted_impurity = 0
         split_information = 0
-
-        # Compute weighted impurity and split information
         for subset in groups.values():
             attribute_size = len(subset) / total_samples
             if attribute_size > 0:  # Prevent log2(0)
@@ -228,6 +226,9 @@ class DecisionNode:
         #                             END OF YOUR CODE                            #
         ###########################################################################
         return goodness, groups
+
+    def _group_by_unique_values(self, feature):
+        return {val: self.data[self.data[:, feature] == val] for val in np.unique(self.data[:, feature])}
 
     def _calc_goodness_by_gain_ratio(self, information_gain, split_information):
         if self.gain_ratio and split_information != 0:
