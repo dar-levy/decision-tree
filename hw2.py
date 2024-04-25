@@ -110,9 +110,9 @@ def calc_entropy(data):
     ###########################################################################
     return entropy
 
+
 class DecisionNode:
 
-    
     def __init__(self, data, impurity_func, feature=-1,depth=0, chi=1, max_depth=1000, gain_ratio=False):
 
         self.data = data # the relevant data for the node
@@ -269,7 +269,7 @@ class DecisionNode:
 
         self.feature = best_feature
 
-        if len(best_groups) > 1 and self._is_division_nonrandom(best_groups):
+        if len(best_groups) > 1 and is_division_nonrandom(self.data, best_groups, self.chi):
             for key, group in best_groups.items():
                 child = DecisionNode(group, self.impurity_func, depth=self.depth+1, chi=self.chi, max_depth=self.max_depth, gain_ratio=self.gain_ratio)
                 self.add_child(child, key)
@@ -278,36 +278,38 @@ class DecisionNode:
         #                             END OF YOUR CODE                            #
         ###########################################################################
 
-    def _is_division_nonrandom(self, subdata):
-        if self.chi == 1:
-            return True
 
-        chi_val = self._compute_chi_square(self.data, subdata)
-        degree_of_freedom = len(subdata) - 1
-        chi_val_from_table = chi_table[degree_of_freedom][self.chi]
-        return chi_val >= chi_val_from_table
+def is_division_nonrandom(data, subdata, chi):
+    if chi == 1:
+        return True
 
-    def _compute_chi_square(self, data, subdata):
-        total_size = len(data)
-        label_counts = np.unique(data[:, -1], return_counts=True)
-        chi_square = 0
+    chi_val = compute_chi_square(data, subdata)
+    degree_of_freedom = len(subdata) - 1
+    chi_val_from_table = chi_table[degree_of_freedom][chi]
+    return chi_val >= chi_val_from_table
 
-        for subset in subdata.values():
-            subset_size = len(subset)
-            if subset_size == 0:
-                continue
 
-            subset_label_counts = np.unique(subset[:, -1], return_counts=True)
-            subset_label_dict = dict(zip(subset_label_counts[0], subset_label_counts[1]))
+def compute_chi_square(data, subdata):
+    total_size = len(data)
+    label_counts = np.unique(data[:, -1], return_counts=True)
+    chi_square = 0
 
-            for label, global_count in zip(label_counts[0], label_counts[1]):
-                expected = subset_size * (global_count / total_size)
-                observed = subset_label_dict.get(label, 0)  # Default to 0 if the label is not found in the subset
+    for subset in subdata.values():
+        subset_size = len(subset)
+        if subset_size == 0:
+            continue
 
-                if expected > 0:
-                    chi_square += ((observed - expected) ** 2) / expected
+        subset_label_counts = np.unique(subset[:, -1], return_counts=True)
+        subset_label_dict = dict(zip(subset_label_counts[0], subset_label_counts[1]))
 
-        return chi_square
+        for label, global_count in zip(label_counts[0], label_counts[1]):
+            expected = subset_size * (global_count / total_size)
+            observed = subset_label_dict.get(label, 0)  # Default to 0 if the label is not found in the subset
+
+            if expected > 0:
+                chi_square += ((observed - expected) ** 2) / expected
+
+    return chi_square
 
 
 class DecisionTree:
