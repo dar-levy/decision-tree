@@ -251,16 +251,7 @@ class DecisionNode:
             self.terminal = True
             return
 
-        best_goodness = -float('inf')
-        best_feature = None
-        best_groups = None
-        n_features = self.data.shape[1] - 1
-        for feature in range(n_features):
-            goodness, groups = self.goodness_of_split(feature)
-            if goodness > best_goodness:
-                best_goodness = goodness
-                best_feature = feature
-                best_groups = groups
+        best_goodness, best_feature, best_groups = self._get_best_goodness_of_split()
 
         # If no good split found or if the chi value suggests stopping
         if best_feature is None or best_goodness <= 0:
@@ -278,6 +269,19 @@ class DecisionNode:
         #                             END OF YOUR CODE                            #
         ###########################################################################
 
+    def _get_best_goodness_of_split(self):
+        best_goodness = -float('inf')
+        best_feature = None
+        best_groups = None
+        n_features = self.data.shape[1] - 1
+        for feature in range(n_features):
+            goodness, groups = self.goodness_of_split(feature)
+            if goodness > best_goodness:
+                best_goodness = goodness
+                best_groups = groups
+                best_feature = feature
+
+        return best_goodness, best_feature, best_groups
 
 def is_division_nonrandom(data, subdata, chi):
     if chi == 1:
