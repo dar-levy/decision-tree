@@ -501,27 +501,14 @@ def chi_pruning(X_train, X_validation):
 
 
 def calc_depth(node):
-    """
-    Calculate the depth of the tree by adding each depth of a node to a list and returns the maximum value
-    of the depth that we got on the list. By doing this we basically get a node and then go down to the leaf to get the
-    depth of the whole tree.
-
-    Input:
-    - node: a node from a tree.
-
-    Output: the depth of the tree.
-    """
-    # Check if we got to a leaf.
     if node.terminal:
         return node.depth
 
-    # Creating a list that will contain the depth of the node's children.
     depths = [0]
-
-    # Going over all the children of the node.
     for child in node.children:
         child_depth = calc_depth(child)
         depths.append(child_depth)
+        
     return max(depths)
 
 
