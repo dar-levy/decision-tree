@@ -269,7 +269,7 @@ class DecisionNode:
 
         self.feature = best_feature
 
-        if len(best_groups) > 1 and self._check_chi(best_groups):
+        if len(best_groups) > 1 and self._is_division_nonrandom(best_groups):
             for key, group in best_groups.items():
                 child = DecisionNode(group, self.impurity_func, depth=self.depth+1, chi=self.chi, max_depth=self.max_depth, gain_ratio=self.gain_ratio)
                 self.add_child(child, key)
@@ -278,7 +278,7 @@ class DecisionNode:
         #                             END OF YOUR CODE                            #
         ###########################################################################
 
-    def _check_chi(self, subdata):
+    def _is_division_nonrandom(self, subdata):
         if self.chi == 1:
             return True
 
