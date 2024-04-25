@@ -251,6 +251,7 @@ class DecisionNode:
             self.terminal = True
             return
 
+        self.calc_feature_importance(len(self.data))
         best_goodness, best_feature, best_groups = self._get_best_goodness_of_split()
 
         # If no good split found or if the chi value suggests stopping
