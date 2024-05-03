@@ -295,26 +295,21 @@ def is_division_nonrandom(data, subdata, chi):
 
 
 def compute_chi_square(data, subdata):
-    total_size = len(data)
-    label_counts = np.unique(data[:, -1], return_counts=True)
-    chi_square = 0
+    labels, count = np.unique(data[:, -1], return_counts=True)
+    num_instances = len(data)
+    probabilities = count / num_instances
+    degree_of_freedom = len(subdata) - 1
+    chi_square_statistic = 0
+    for key, subset in subdata.items():
+        E0 = len(subset) * probabilities[0]
+        E1 = len(subset) * probabilities[1]
+        count_label_0 = np.sum(subset[:, -1] == labels[0])
+        count_label_1 = np.sum(subset[:, -1] == labels[1])
+        proportion_pf_E0 = (count_label_0 - E0) ** 2 / E0
+        proportion_nf_E1 = (count_label_1 - E1) ** 2 / E1
+        chi_square_statistic += proportion_pf_E0 + proportion_nf_E1
 
-    for subset in subdata.values():
-        subset_size = len(subset)
-        if subset_size == 0:
-            continue
-
-        subset_label_counts = np.unique(subset[:, -1], return_counts=True)
-        subset_label_dict = dict(zip(subset_label_counts[0], subset_label_counts[1]))
-
-        for label, global_count in zip(label_counts[0], label_counts[1]):
-            expected = subset_size * (global_count / total_size)
-            observed = subset_label_dict.get(label, 0)  # Default to 0 if the label is not found in the subset
-
-            if expected > 0:
-                chi_square += ((observed - expected) ** 2) / expected
-
-    return chi_square
+    return chi_square_statistic
 
 
 class DecisionTree:
