@@ -406,7 +406,7 @@ class DecisionTree:
             if prediction == actual_value:
                 accuracy += 1
 
-        accuracy = (accuracy / (len(dataset))) * 100
+        accuracy = accuracy / (len(dataset))
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################
